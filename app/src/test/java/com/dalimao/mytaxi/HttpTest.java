@@ -1,5 +1,9 @@
 package com.dalimao.mytaxi;
 
+import com.dalimao.mytaxi.common.http.IResponse;
+import com.dalimao.mytaxi.common.http.impl.BaseRequest;
+import com.dalimao.mytaxi.common.http.impl.OkHttpClientImpl;
+
 import org.junit.Test;
 
 import java.io.File;
@@ -23,7 +27,7 @@ public class HttpTest {
         try {
             Response response = httpClient.newCall(request).execute();
             //  Log.i("wak", response.body().string());
-            System.out.println(response.body().string());
+            System.out.println(response.code() + "::" + response.body().string());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -105,5 +109,11 @@ public class HttpTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Test
+    public void ceshi() {
+        IResponse response = new OkHttpClientImpl().get(new BaseRequest("http://httpbin.org/get?id=id"), false);
+        System.out.println(response.getData());
     }
 }

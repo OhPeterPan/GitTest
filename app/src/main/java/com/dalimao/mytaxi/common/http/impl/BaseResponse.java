@@ -8,11 +8,11 @@ public class BaseResponse implements IResponse {
     private String data;
 
     public void setCode(int code) {
-        code = code;
+        this.code = code;
     }
 
     public void setData(String data) {
-        data = data;
+        this.data = data;
     }
 
     @Override

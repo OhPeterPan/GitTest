@@ -20,9 +20,12 @@ public class OkHttpClientImpl implements IHttpClient {
     public IResponse get(IRequest request, boolean forceCache) {
         Map<String, String> header = request.getHeader();
         Request.Builder builder = new Request.Builder();
-        for (String key : header.keySet()) {
-            builder.addHeader(key, header.get(key).toString());
+        if (header != null) {
+         /*   for (String key : header.keySet()) {
+                builder.addHeader(key, header.get(key).toString());
+            }*/
         }
+        System.out.println(request.getUrl());
         builder.url(request.getUrl()).get();
         Request okRequest = builder.build();
         //client.newCall(okRequest).execute();
@@ -33,8 +36,10 @@ public class OkHttpClientImpl implements IHttpClient {
         BaseResponse commonResponse = new BaseResponse();
         try {
             Response response = client.newCall(request).execute();
+            String result = response.body().string();
+            System.out.println(result);
             commonResponse.setCode(response.code());
-            commonResponse.setData(response.body().string());
+            commonResponse.setData(result);
         } catch (IOException e) {
             e.printStackTrace();
             commonResponse.setCode(IResponse.STATE_ERROR_CODE);
