@@ -48,7 +48,6 @@ public class BaseRequest implements IRequest {
 
     @Override
     public String getMethod() {
-        System.out.println("hehehehehe");
         return method;
     }
 
