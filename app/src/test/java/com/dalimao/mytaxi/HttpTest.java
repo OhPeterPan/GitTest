@@ -83,9 +83,6 @@ public class HttpTest {
     @Test
     public void cache() {
         Cache cache = new Cache(new File("cache.cache"), 1024 * 1024);
-/*        OkHttpClient client = new OkHttpClient.Builder().cache(cache).build();
-        MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
-        RequestBody body = RequestBody.create(mediaType, "{\"name\":\"wuaoke\"}");*/
         OkHttpClient client = new OkHttpClient.Builder()
                 .cache(cache)
                 .readTimeout(60, TimeUnit.SECONDS)
