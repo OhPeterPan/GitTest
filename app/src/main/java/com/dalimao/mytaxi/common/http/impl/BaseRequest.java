@@ -16,8 +16,8 @@ public class BaseRequest implements IRequest {
         this.url = url;
         header = new HashMap<>();
         body = new HashMap<>();
-        header.put("Application-Id", "myTaxiID");
-        header.put("API-key", "myTaxiKey");
+        header.put("Application-Id", "e90928398db0130b0d6d21da7bde357e");
+        header.put("API-key", "514d8f8a2371bdf1566033f6664a24d2");
     }
 
     @Override

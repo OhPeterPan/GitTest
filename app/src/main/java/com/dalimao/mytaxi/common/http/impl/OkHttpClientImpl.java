@@ -21,9 +21,9 @@ public class OkHttpClientImpl implements IHttpClient {
         Map<String, String> header = request.getHeader();
         Request.Builder builder = new Request.Builder();
         if (header != null) {
-         /*   for (String key : header.keySet()) {
+            for (String key : header.keySet()) {
                 builder.addHeader(key, header.get(key).toString());
-            }*/
+            }
         }
         System.out.println(request.getUrl());
         builder.url(request.getUrl()).get();
