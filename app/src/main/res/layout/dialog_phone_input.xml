@@ -1,67 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    >
+    android:orientation="vertical">
     <!--头部-->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
         <ImageView
+            android:id="@+id/close"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/btn_close"
             android:layout_alignParentRight="true"
             android:padding="@dimen/activity_vertical_margin"
-            android:id="@+id/close"
-            />
+            android:src="@drawable/btn_close" />
     </RelativeLayout>
 
     <LinearLayout
-        android:padding="@dimen/activity_horizontal_margin"
-        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/activity_horizontal_margin">
+
         <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/login"
             android:id="@+id/dialog_title"
             style="@style/Dialog.Title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:gravity="center_horizontal"
-
-            />
+            android:text="@string/login" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="10dp"
-            >
+            android:padding="10dp">
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/color_text_normal"
                 android:text="+86"
-                />
+                android:textColor="@color/color_text_normal" />
+
             <EditText
+                android:id="@+id/phone"
+                style="@style/Dialog.Input"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/pls_input_phone"
-                style="@style/Dialog.Input"
-                android:id="@+id/phone"
                 android:inputType="phone"
                 android:textColor="@color/color_text_normal"
-                />
+                android:theme="@style/MyEditText" />
         </LinearLayout>
     </LinearLayout>
 
     <Button
+        android:id="@+id/btn_next"
+        style="@style/Dialog.Button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/next"
-        style="@style/Dialog.Button"
-        android:id="@+id/btn_next"
-        />
+        android:enabled="false"
+        android:text="@string/next" />
 
 </LinearLayout>

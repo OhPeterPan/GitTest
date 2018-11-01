@@ -1,16 +1,16 @@
-package com.dalimao.mytaxi;
+package com.dalimao.mytaxi.splash;
 
+import android.content.Intent;
 import android.graphics.drawable.AnimatedVectorDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.widget.ImageView;
 
-import com.dalimao.mytaxi.common.http.IResponse;
-import com.dalimao.mytaxi.common.http.impl.BaseRequest;
-import com.dalimao.mytaxi.common.http.impl.OkHttpClientImpl;
+import com.dalimao.mytaxi.main.MainActivity;
+import com.dalimao.mytaxi.R;
 
 public class SplashActivity extends AppCompatActivity {
     @Override
@@ -23,20 +23,14 @@ public class SplashActivity extends AppCompatActivity {
             iv_logo.setImageDrawable(animatedVectorDrawable);
             animatedVectorDrawable.start();
         }
-        new Thread() {
+        new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                super.run();
-                final IResponse response = new OkHttpClientImpl().get(new BaseRequest("http://httpbin.org/get?id=id"), false);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.i("wak", response.getCode() + "我是:" + response.getData());
-                    }
-                });
-
+                Intent intent = new Intent(SplashActivity.this, MainActivity.class);
+                startActivity(intent);
+                finish();
             }
-        }.start();
+        }, 2000);
 
     }
 }

@@ -37,7 +37,6 @@ public class OkHttpClientImpl implements IHttpClient {
         try {
             Response response = client.newCall(request).execute();
             String result = response.body().string();
-            System.out.println(result);
             commonResponse.setCode(response.code());
             commonResponse.setData(result);
         } catch (IOException e) {

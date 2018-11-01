@@ -1,7 +1,7 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
@@ -61,6 +61,11 @@
     <style name="Error">
         <item name="android:textSize">@dimen/text_size_small</item>
         <item name="android:textColor">@color/error_red</item>
+    </style>
+
+    <style name="MyEditText" parent="Theme.AppCompat.Light">
+        <item name="colorControlNormal">@color/text_gray</item>
+        <item name="colorControlActivated">@color/color_text_dark</item>
     </style>
 
     <style name="Loading"></style>
