@@ -3,11 +3,11 @@ package com.dalimao.mytaxi.common.http.api;
 public class Api {
     public static final String TEST_GET = "/get?uid=${uid}";
     public static final String TEST_POST = "/post";
-    public static final String GET_VERIFY_URL = " http://cloud.bmob.cn/f34e28da5816433d/getMsgCode?phone=${phone} ";
+    public static final String GET_VERIFY_URL = "f34e28da5816433d/getMsgCode?phone=${phone} ";
 
     public static class Config {
-        private static final String TEST_DOMAIN = "HTTP://httpbin.org";
-        private static final String RELEASE_DOMAIN = "HTTP://httpbin.org";
+        private static final String TEST_DOMAIN = "http://cloud.bmob.cn/";//HTTP://httpbin.org
+        private static final String RELEASE_DOMAIN = "http://cloud.bmob.cn/";
         private static final String RELEASE_APPLICATION_KEY = "";
         private static final String DEBUG_APPLICATION_KEY = "";
         private static final String RELEASE_APP_KEY = "";

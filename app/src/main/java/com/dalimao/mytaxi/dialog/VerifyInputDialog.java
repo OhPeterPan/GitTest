@@ -21,11 +21,13 @@ import com.dalimao.mytaxi.common.http.impl.OkHttpClientImpl;
 
 public class VerifyInputDialog extends Dialog {
     private String phoneNumber;
+    IHttpClient client;
+
 
     public VerifyInputDialog(@NonNull Context context, String phone) {
         this(context, R.style.Dialog);
         this.phoneNumber = phone;
-        sendCode();
+        client = new OkHttpClientImpl();
     }
 
     public VerifyInputDialog(@NonNull Context context, int themeResId) {
@@ -43,8 +45,6 @@ public class VerifyInputDialog extends Dialog {
     private void initView() {
         ImageView close = findViewById(R.id.close);
         TextView phone = findViewById(R.id.phone);
-
-
         String testStr = getContext().getResources().getString(R.string.sms_code_send_phone);
         String result = String.format(testStr, phoneNumber);
         phone.setText(result);
@@ -53,6 +53,7 @@ public class VerifyInputDialog extends Dialog {
         VerificationCodeInput verificationCodeInput = findViewById(R.id.verificationCodeInput);
         ProgressBar loading = findViewById(R.id.loading);
         TextView error = findViewById(R.id.error);
+        sendCode();
         verificationCodeInput.setOnCompleteListener(new VerificationCodeInput.Listener() {
             @Override
             public void onComplete(String s) {
@@ -61,16 +62,13 @@ public class VerifyInputDialog extends Dialog {
         });
     }
 
-    IHttpClient client = new OkHttpClientImpl();
-    IRequest request;
-
     private void sendCode() {
-        request = new BaseRequest(Api.GET_VERIFY_URL);
-        request.setBody("phone", phoneNumber);
         new Thread() {
             @Override
             public void run() {
                 super.run();
+                IRequest request = new BaseRequest(Api.Config.getDomain() + Api.GET_VERIFY_URL);
+                request.setBody("phone", phoneNumber);
                 IResponse response = client.get(request, false);
                 System.out.println("result:" + response.getData());
             }
