@@ -3,7 +3,8 @@ package com.dalimao.mytaxi.common.http.api;
 public class Api {
     public static final String TEST_GET = "/get?uid=${uid}";
     public static final String TEST_POST = "/post";
-    public static final String GET_VERIFY_URL = "f34e28da5816433d/getMsgCode?phone=${phone} ";
+    public static final String GET_VERIFY_URL = "f34e28da5816433d/getMsgCode?phone=${phone}";
+    public static final String CHECK_VERIFY_URL = "f34e28da5816433d/checkMsgCode?phone=${phone}&code=${code}";
 
     public static class Config {
         private static final String TEST_DOMAIN = "http://cloud.bmob.cn/";//HTTP://httpbin.org

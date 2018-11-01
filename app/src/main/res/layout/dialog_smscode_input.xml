@@ -79,7 +79,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:padding="12dp"
-            android:text="@string/sms_code_error" />
+            android:text="@string/sms_code_error"
+            android:visibility="gone" />
 
     </LinearLayout>
 

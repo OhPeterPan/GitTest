@@ -37,7 +37,7 @@ public class BaseRequest implements IRequest {
 
     @Override
     public String getUrl() {
-        if (GET.equals(url)) {
+        if (GET.equals(method)) {
             for (String key :
                     body.keySet()) {
                 url = url.replace("${" + key + "}", body.get(key).toString());

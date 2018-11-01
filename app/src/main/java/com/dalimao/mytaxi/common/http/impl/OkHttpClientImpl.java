@@ -18,6 +18,7 @@ public class OkHttpClientImpl implements IHttpClient {
 
     @Override
     public IResponse get(IRequest request, boolean forceCache) {
+        request.setMethod(IRequest.GET);
         Map<String, String> header = request.getHeader();
         Request.Builder builder = new Request.Builder();
         if (header != null) {
@@ -25,7 +26,6 @@ public class OkHttpClientImpl implements IHttpClient {
                 builder.addHeader(key, header.get(key).toString());
             }
         }
-        System.out.println(request.getUrl());
         builder.url(request.getUrl()).get();
         Request okRequest = builder.build();
         //client.newCall(okRequest).execute();
@@ -50,6 +50,7 @@ public class OkHttpClientImpl implements IHttpClient {
 
     @Override
     public IResponse post(IRequest request, boolean forceCache) {
+        request.setMethod(IRequest.POST);
         String mediaType = "application/json;charset=utf-8";
         MediaType JSON = MediaType.parse(mediaType);
         RequestBody requestBody = RequestBody.create(JSON, request.getBody().toString());

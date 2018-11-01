@@ -16,12 +16,14 @@ import com.dalimao.mytaxi.R;
 
 public class PhoneInoutDialog extends Dialog implements View.OnClickListener {
 
+    private Context context;
     private EditText phone;
     private Button btn_next;
     private ImageView close;
 
     public PhoneInoutDialog(@NonNull Context context) {
         this(context, R.style.Dialog);
+        this.context = context;
     }
 
     public PhoneInoutDialog(@NonNull Context context, int themeResId) {
@@ -71,7 +73,7 @@ public class PhoneInoutDialog extends Dialog implements View.OnClickListener {
         switch (v.getId()) {
             case R.id.btn_next:
                 String phoneNumber = phone.getText().toString().trim();
-                VerifyInputDialog verifyInputDialog = new VerifyInputDialog(getContext(), phoneNumber);
+                VerifyInputDialog verifyInputDialog = new VerifyInputDialog(context, phoneNumber);
                 verifyInputDialog.show();
                 break;
             case R.id.close:
