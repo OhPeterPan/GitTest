@@ -89,8 +89,8 @@ public class VerifyInputDialog extends Dialog {
                     verifyInputDialog.setCheckState(false);
                     break;
 
-                case REGISTER_SUC_CODE:// TODO: 2018/11/7 0007  该用户不存在 去注册
-
+                case REGISTER_SUC_CODE:// 该用户不存在 去注册
+                    verifyInputDialog.showRegisterDialog();
                     break;
                 case REGISTER_FAIL_CODE:// TODO: 2018/11/7 0007  该用户已经存在直接登录
 
@@ -100,6 +100,12 @@ public class VerifyInputDialog extends Dialog {
                     break;
             }
         }
+    }
+
+    private void showRegisterDialog() {
+        dismiss();
+        RegisterDialog registerDialog = new RegisterDialog(getContext(), phoneNumber);
+        registerDialog.show();
     }
 
     private void serviceErr() {

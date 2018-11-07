@@ -9,7 +9,7 @@
     <string name="sms_code_send_phone">验证码已经发送至%s</string>
     <string name="resend">重新发送</string>
     <string name="after_time_resend">%d秒后重新发送</string>
-    <string name="create_pw">创建秘密</string>
+    <string name="create_pw">创建密码</string>
     <string name="pls_input_pw">请输入密码</string>
     <string name="confirm">确认</string>
     <string name="pls_input_pw_again">请再次输入密码</string>
