@@ -14,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.blankj.utilcode.util.ToastUtils;
 import com.dalimao.corelibrary.VerificationCodeInput;
 import com.dalimao.mytaxi.R;
 import com.dalimao.mytaxi.common.http.IHttpClient;
@@ -23,6 +24,7 @@ import com.dalimao.mytaxi.common.http.api.Api;
 import com.dalimao.mytaxi.common.http.bean.CommonBean;
 import com.dalimao.mytaxi.common.http.bean.CommonDetailBean;
 import com.dalimao.mytaxi.common.http.impl.BaseRequest;
+import com.dalimao.mytaxi.common.http.impl.BaseResponse;
 import com.dalimao.mytaxi.common.http.impl.OkHttpClientImpl;
 import com.google.gson.Gson;
 
@@ -33,8 +35,11 @@ public class VerifyInputDialog extends Dialog {
     private static final int GET_VERIFY_FAIL = -1;
     private static final int CHECK_CODE_SUC = 2;
     private static final int CHECK_CODE_FAIL = -2;
+    private static final int SERVICE_ERROR = 100;//服务器出错了
+    private static final int REGISTER_FAIL_CODE = -3;
+    private static final int REGISTER_SUC_CODE = 3;
     private String phoneNumber;
-    IHttpClient client;
+    private IHttpClient client;
     private Button mBtn_resend;
 
     private CountDownTimer mCountDownTimer = new CountDownTimer(10000, 1000) {
@@ -83,8 +88,22 @@ public class VerifyInputDialog extends Dialog {
                 case CHECK_CODE_FAIL:
                     verifyInputDialog.setCheckState(false);
                     break;
+
+                case REGISTER_SUC_CODE:// TODO: 2018/11/7 0007  该用户不存在 去注册
+
+                    break;
+                case REGISTER_FAIL_CODE:// TODO: 2018/11/7 0007  该用户已经存在直接登录
+
+                    break;
+                case SERVICE_ERROR:
+                    verifyInputDialog.serviceErr();
+                    break;
             }
         }
+    }
+
+    private void serviceErr() {
+        ToastUtils.showShort(getContext().getResources().getString(R.string.error_server));
     }
 
     private void setCheckState(boolean state) {
@@ -95,7 +114,30 @@ public class VerifyInputDialog extends Dialog {
         } else {//验证成功后去判断他是否是已经注册的
             mLoading.setVisibility(View.GONE);
             mError.setVisibility(View.GONE);
+            checkRegisterState();
         }
+    }
+
+    private void checkRegisterState() {
+        new Thread() {
+            @Override
+            public void run() {
+                super.run();
+                IRequest request = new BaseRequest(Api.Config.getDomain() + Api.CHECK_REGISTER_URL);
+                request.setBody("phone", phoneNumber);
+                IResponse response = client.get(request, false);
+                if (response.getCode() == BaseResponse.STATE_SUC_CODE) {
+                    CommonBean commonBean = new Gson().fromJson(response.getData(), CommonBean.class);
+                    if (commonBean.getCode() == BaseResponse.REGISTER_SUC_CODE) {//该用户不存在  弹出注册的dialog
+                        mHandler.sendEmptyMessage(REGISTER_SUC_CODE);
+                    } else if (commonBean.getCode() == BaseResponse.REGISTER_FAIL_CODE) {//该用户已经注册  直接登录
+                        mHandler.sendEmptyMessage(REGISTER_FAIL_CODE);
+                    }
+                } else {
+                    mHandler.sendEmptyMessage(SERVICE_ERROR);
+                }
+            }
+        }.start();
     }
 
     public VerifyInputDialog(@NonNull Context context, String phone) {
@@ -132,7 +174,6 @@ public class VerifyInputDialog extends Dialog {
             @Override
             public void onComplete(String code) {
                 mLoading.setVisibility(View.VISIBLE);
-                Log.i("wak", code + "::" + phoneNumber);
                 checkVerify(code);
             }
         });

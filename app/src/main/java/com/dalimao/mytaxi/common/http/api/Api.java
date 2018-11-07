@@ -5,6 +5,7 @@ public class Api {
     public static final String TEST_POST = "/post";
     public static final String GET_VERIFY_URL = "f34e28da5816433d/getMsgCode?phone=${phone}";
     public static final String CHECK_VERIFY_URL = "f34e28da5816433d/checkMsgCode?phone=${phone}&code=${code}";
+    public static final String CHECK_REGISTER_URL = "f34e28da5816433d/isUserExist?phone=${phone}";
 
     public static class Config {
         private static final String TEST_DOMAIN = "http://cloud.bmob.cn/";//HTTP://httpbin.org
