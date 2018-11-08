@@ -90,10 +90,10 @@ public class VerifyInputDialog extends Dialog {
                     break;
 
                 case REGISTER_SUC_CODE:// 该用户不存在 去注册
-                    verifyInputDialog.showRegisterDialog();
+                    verifyInputDialog.showUserExit(false);
                     break;
-                case REGISTER_FAIL_CODE:// TODO: 2018/11/7 0007  该用户已经存在直接登录
-
+                case REGISTER_FAIL_CODE:
+                    verifyInputDialog.showUserExit(true);
                     break;
                 case SERVICE_ERROR:
                     verifyInputDialog.serviceErr();
@@ -102,8 +102,29 @@ public class VerifyInputDialog extends Dialog {
         }
     }
 
-    private void showRegisterDialog() {
+    private void showUserExit(boolean exit) {
+        mLoading.setVisibility(View.GONE);
+        mError.setVisibility(View.GONE);
         dismiss();
+        if (!exit) {//用户不存在 去注册
+            showRegisterDialog();
+        } else {//用户存在，去登录
+            showLoginDialog();
+        }
+    }
+
+    /**
+     * 显示登陆的dialog
+     */
+    private void showLoginDialog() {
+        LoginDialog loginDialog = new LoginDialog(getContext(), phoneNumber);
+        loginDialog.show();
+    }
+
+    /**
+     * 显示注册的dialog
+     */
+    private void showRegisterDialog() {
         RegisterDialog registerDialog = new RegisterDialog(getContext(), phoneNumber);
         registerDialog.show();
     }

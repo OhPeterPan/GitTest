@@ -4,6 +4,7 @@ import com.dalimao.mytaxi.common.http.IResponse;
 
 public class BaseResponse implements IResponse {
 
+    public static int STATE_TOKEN_INVALID = 100006;
     private int code;
     private String data;
 
