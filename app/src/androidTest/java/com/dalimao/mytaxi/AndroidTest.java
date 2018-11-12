@@ -30,7 +30,6 @@ public class AndroidTest {
         RxBus.getInstance().unRegister(presenter);
     }
 
-
     @Test
     public void getUser() {
         presenter.getUser();
