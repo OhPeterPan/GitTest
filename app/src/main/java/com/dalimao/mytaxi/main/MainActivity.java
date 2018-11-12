@@ -3,9 +3,9 @@ package com.dalimao.mytaxi.main;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.RelativeLayout;
 
-import com.amap.api.maps2d.model.LatLng;
 import com.blankj.utilcode.util.ToastUtils;
 import com.dalimao.mytaxi.R;
 import com.dalimao.mytaxi.common.http.IHttpClient;
@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private IHttpClient client;
 
     private RelativeLayout relative_main_activity;
-    private GaoDeMapLayerImpl mapLayer;
+    private IMapLayer apLayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,26 +37,27 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         client = new OkHttpClientImpl();
         checkLoginState();
-        mapLayer = new GaoDeMapLayerImpl(this);
-        mapLayer.setLocationChangeListener(new IMapLayer.CommonLocationChangeListener() {
+
+        apLayer = new GaoDeMapLayerImpl(this);
+        apLayer.setLocationChangeListener(new IMapLayer.CommonLocationChangeListener() {
             @Override
             public void onLocationChanged(LocationInfo locationInfo) {
-
+                Log.i("wak", "多次回调？" + locationInfo.latitude + ":::" + locationInfo.longitude);
+                apLayer.addOrUpdateMarker(locationInfo, BitmapFactory.decodeResource(getResources(), R.drawable.navi_map_gps_locked));
             }
 
             @Override
             public void onLocation(LocationInfo locationInfo) {
-                mapLayer.addOrUpdateMarker(locationInfo, BitmapFactory.decodeResource(getResources(), R.drawable.location_marker));
+
+                apLayer.addOrUpdateMarker(locationInfo, BitmapFactory.decodeResource(getResources(), R.drawable.navi_map_gps_locked));
             }
         });
-        mapLayer.onCreate(savedInstanceState);
+        apLayer.onCreate(savedInstanceState);
+        //apLayer.setLocationRes(R.drawable.navi_map_gps_locked);
+
         relative_main_activity = findViewById(R.id.relative_main_activity);
-
-        relative_main_activity.addView(mapLayer.getMapView());
-
-
+        relative_main_activity.addView(apLayer.getMapView());
     }
-
 
     /**
      * 方法必须重写
@@ -64,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        mapLayer.onResume();
+        apLayer.onResume();
     }
 
     /**
@@ -73,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        mapLayer.onPause();
+        apLayer.onPause();
     }
 
     /**
@@ -82,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        mapLayer.onSaveInstanceState(outState);
+        apLayer.onSaveInstanceState(outState);
     }
 
     /**
@@ -91,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mapLayer.onDestroy();
+        apLayer.onDestroy();
     }
 
     private void checkLoginState() {
@@ -149,11 +150,6 @@ public class MainActivity extends AppCompatActivity {
     private void showInputPhoneDialog() {
         PhoneInoutDialog phoneInoutDialog = new PhoneInoutDialog(this);
         phoneInoutDialog.show();
-    }
-
-    private void addMarker(LatLng latlng) {
-
-        //mLocMarker.setTitle(LOCATION_MARKER_FLAG);
     }
 
 }
