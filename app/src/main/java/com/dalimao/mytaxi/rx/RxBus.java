@@ -18,7 +18,6 @@ public class RxBus {
 
     private RxBus() {
         set = new CopyOnWriteArraySet<>();
-
     }
 
     public void register(Object o) {
@@ -50,7 +49,8 @@ public class RxBus {
                     @Override
                     public void accept(Object obj) throws Exception {
                         for (Object o : set) {
-                            System.out.println("走不走");
+                            //System.out.println("走不走");
+
                             chainAnnotation(o, obj);
                         }
                     }
@@ -58,23 +58,24 @@ public class RxBus {
     }
 
     private void chainAnnotation(Object o, Object data) {
-        Method[] methods = o.getClass().getDeclaredMethods();
-        for (Method method : methods) {
-            method.setAccessible(true);
-            if (method.isAnnotationPresent(RegisterBus.class)) {
-                Class<?> type = method.getParameterTypes()[0];
-                if (type.getSimpleName().equals(data.getClass().getSimpleName())) {
-                    try {
-                        System.out.println("走不走");
-                        method.invoke(o, new Object[]{data});
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    } catch (InvocationTargetException e) {
-                        e.printStackTrace();
+        Method[] methodArray = o.getClass().getDeclaredMethods();
+        Method method;
+        for (int i = 0; i < methodArray.length; i++) {
+            method = methodArray[i];
+            try {
+                if (methodArray[i].isAnnotationPresent(RegisterBus.class)) {
+                    // 被 @RegisterBus 修饰的方法
+                    Class paramType = method.getParameterTypes()[0];
+                    if (data.getClass().getName().equals(paramType.getName())) {
+                        // 参数类型和 data 一样，调用此方法
+                        methodArray[i].invoke(o, new Object[]{data});
                     }
                 }
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
             }
-
         }
     }
 }

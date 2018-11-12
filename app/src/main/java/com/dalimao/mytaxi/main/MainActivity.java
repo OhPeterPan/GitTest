@@ -1,5 +1,6 @@
 package com.dalimao.mytaxi.main;
 
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -18,18 +19,27 @@ import com.dalimao.mytaxi.common.http.impl.BaseRequest;
 import com.dalimao.mytaxi.common.http.impl.BaseResponse;
 import com.dalimao.mytaxi.common.http.impl.OkHttpClientImpl;
 import com.dalimao.mytaxi.dialog.PhoneInoutDialog;
+import com.dalimao.mytaxi.main.bean.DivResponse;
+import com.dalimao.mytaxi.main.manager.IMainManager;
+import com.dalimao.mytaxi.main.manager.MainManagerImpl;
+import com.dalimao.mytaxi.main.presenter.IMainPresenter;
+import com.dalimao.mytaxi.main.presenter.MainPresenterImpl;
+import com.dalimao.mytaxi.main.view.IMainView;
 import com.dalimao.mytaxi.map.GaoDeMapLayerImpl;
 import com.dalimao.mytaxi.map.IMapLayer;
 import com.dalimao.mytaxi.map.bean.LocationInfo;
+import com.dalimao.mytaxi.rx.RxBus;
 import com.dalimao.mytaxi.util.SharedPreferenceManager;
 import com.google.gson.Gson;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements IMainView {
 
     private IHttpClient client;
 
     private RelativeLayout relative_main_activity;
     private IMapLayer apLayer;
+    private IMainPresenter presenter;
+    private Bitmap divBitmap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,14 +52,16 @@ public class MainActivity extends AppCompatActivity {
         apLayer.setLocationChangeListener(new IMapLayer.CommonLocationChangeListener() {
             @Override
             public void onLocationChanged(LocationInfo locationInfo) {
-                Log.i("wak", "多次回调？" + locationInfo.latitude + ":::" + locationInfo.longitude);
-                apLayer.addOrUpdateMarker(locationInfo, BitmapFactory.decodeResource(getResources(), R.drawable.navi_map_gps_locked));
+                Log.i("wak", "多次回调？");
+                //  apLayer.addOrUpdateMarker(locationInfo, BitmapFactory.decodeResource(getResources(), R.drawable.navi_map_gps_locked));
             }
 
             @Override
             public void onLocation(LocationInfo locationInfo) {
-
+                Log.i("wak", "啥意思？");
                 apLayer.addOrUpdateMarker(locationInfo, BitmapFactory.decodeResource(getResources(), R.drawable.navi_map_gps_locked));
+                nearDivLocation(locationInfo.latitude, locationInfo.longitude);
+
             }
         });
         apLayer.onCreate(savedInstanceState);
@@ -57,6 +69,30 @@ public class MainActivity extends AppCompatActivity {
 
         relative_main_activity = findViewById(R.id.relative_main_activity);
         relative_main_activity.addView(apLayer.getMapView());
+        IMainManager mainManager = new MainManagerImpl();
+        presenter = new MainPresenterImpl(this, mainManager);
+        RxBus.getInstance().register(presenter);
+    }
+
+    private void nearDivLocation(double latitude, double longitude) {
+        Log.d("wak", "去请求司机:" + latitude + ":::" + longitude);
+        presenter.sendNetNearLocation(latitude, longitude);
+    }
+
+    @Override
+    public void getNearDivResponse(DivResponse response) {
+
+        if (response == null) return;
+        //Log.d("wak", "司机位置:" + response.data.get(0).latitude + ":::" + response.data.get(0).longitude);
+        if (divBitmap == null || divBitmap.isRecycled())
+            divBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.car);
+
+        LocationInfo locationInfo;
+        for (int i = 0; i < response.data.size(); i++) {
+            locationInfo = response.data.get(i);
+            Log.d("wak", "司机位置:" + locationInfo.latitude + ":::" + locationInfo.longitude);
+            apLayer.addOrUpdateMarker(locationInfo, divBitmap);
+        }
     }
 
     /**
@@ -93,6 +129,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         apLayer.onDestroy();
+        RxBus.getInstance().unRegister(presenter);
     }
 
     private void checkLoginState() {
@@ -152,4 +189,13 @@ public class MainActivity extends AppCompatActivity {
         phoneInoutDialog.show();
     }
 
+    @Override
+    public void showLoading() {
+
+    }
+
+    @Override
+    public void showError(Exception e) {
+
+    }
 }

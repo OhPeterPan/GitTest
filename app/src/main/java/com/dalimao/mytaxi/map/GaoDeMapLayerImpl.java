@@ -77,20 +77,20 @@ public class GaoDeMapLayerImpl implements IMapLayer {
 
     @Override
     public void addOrUpdateMarker(LocationInfo locationInfo, Bitmap bitmap) {
-        Marker storedMarker = markerMap.get(locationInfo.id);
+        Marker storedMarker = markerMap.get(locationInfo.key);
         BitmapDescriptor des = BitmapDescriptorFactory.fromBitmap(bitmap);
         if (storedMarker != null) {
-            Log.i("wak", "啥操作？" + locationInfo.latitude + ":::" + locationInfo.longitude);
             storedMarker.setPosition(new LatLng(locationInfo.latitude, locationInfo.longitude));
+            storedMarker.setRotateAngle(locationInfo.rotation);
         } else {
             MarkerOptions options = new MarkerOptions();
             options.icon(des);
             options.anchor(0.5f, 0.5f);
-            Log.i("wak", "回来吗？" + locationInfo.latitude + ":::" + locationInfo.longitude);
             options.position(new LatLng(locationInfo.latitude, locationInfo.longitude));
             Marker marker = aMap.addMarker(options);
-            markerMap.put(locationInfo.id, marker);
-            if (mSensorHelper != null && locationInfo.id.equals(KEY_MY_MARKERE))
+            marker.setRotateAngle(locationInfo.rotation);
+            markerMap.put(locationInfo.key, marker);
+            if (mSensorHelper != null && locationInfo.key.equals(KEY_MY_MARKERE))
                 mSensorHelper.setCurrentMarker(marker);//定位图标旋转
         }
 
@@ -139,7 +139,7 @@ public class GaoDeMapLayerImpl implements IMapLayer {
                                                     18, 30, 0));
                                     aMap.moveCamera(up);
                                     LocationInfo location = new LocationInfo(amapLocation.getLatitude(), amapLocation.getLongitude());
-                                    location.id = KEY_MY_MARKERE;
+                                    location.key = KEY_MY_MARKERE;
                                     if (mFirstFix) {
                                         mFirstFix = false;
                                         if (mLocationChangeListener != null)

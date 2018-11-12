@@ -1,7 +1,7 @@
 package com.dalimao.mytaxi.map.bean;
 
 public class LocationInfo {
-    public String id;
+    public String key;
     public String name;
     public double latitude;
     public double longitude;

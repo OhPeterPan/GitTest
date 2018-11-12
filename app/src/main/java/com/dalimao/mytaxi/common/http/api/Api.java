@@ -9,6 +9,7 @@ public class Api {
     public static final String REGISTER_URL = "f34e28da5816433d/register";
     public static final String AUTH_URL = "f34e28da5816433d/auth";
     public static final String LOGIN_URL = "f34e28da5816433d/login";
+    public static final String NEAR_DIV_URL = "f34e28da5816433d/getNearDrivers?latitude=${latitude}&longitude=${longitude}";
 
     public static class Config {
         private static final String TEST_DOMAIN = "http://cloud.bmob.cn/";//HTTP://httpbin.org
