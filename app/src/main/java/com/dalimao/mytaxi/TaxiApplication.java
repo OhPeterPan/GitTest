@@ -1,6 +1,8 @@
 package com.dalimao.mytaxi;
 
 import android.app.Application;
+import android.content.Context;
+import android.support.multidex.MultiDex;
 
 import com.blankj.utilcode.util.Utils;
 
@@ -16,5 +18,11 @@ public class TaxiApplication extends Application {
 
     public static TaxiApplication getInstance() {
         return application;
+    }
+
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        MultiDex.install(base);
     }
 }

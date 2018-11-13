@@ -48,16 +48,13 @@ public class RxBus {
                 .subscribe(new Consumer() {
                     @Override
                     public void accept(Object obj) throws Exception {
-                        for (Object o : set) {
-                            //System.out.println("走不走");
-
-                            chainAnnotation(o, obj);
-                        }
+                        sendData(obj);
                     }
                 });
     }
 
     private void chainAnnotation(Object o, Object data) {
+        if (data == null) return;
         Method[] methodArray = o.getClass().getDeclaredMethods();
         Method method;
         for (int i = 0; i < methodArray.length; i++) {
@@ -76,6 +73,14 @@ public class RxBus {
             } catch (InvocationTargetException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public void sendData(Object obj) {
+        if (set == null) return;
+        for (Object o : set) {
+            //System.out.println("走不走");
+            chainAnnotation(o, obj);
         }
     }
 }

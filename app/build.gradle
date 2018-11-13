@@ -9,6 +9,7 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -16,14 +17,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    signingConfigs{
-        release{
+    signingConfigs {
+        release {
             storeFile file("keystore/release.jks")
             storePassword "123456"
             keyAlias "release"
             keyPassword "123456"
         }
-        debug{
+        debug {
             storeFile file("keystore/debug.jks")
             storePassword "123456"
             keyAlias "debug"
@@ -47,7 +48,13 @@ dependencies {
     implementation 'com.android.support:design:26.1.0'
     implementation "io.reactivex.rxjava2:rxjava:2.2.3"
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.0'
+
+    //bmob-push：Bmob的推送包
+    api 'cn.bmob.android:bmob-push:0.8'
+    api 'cn.bmob.android:bmob-sdk:3.4.2'
+
     configurations.all {
         resolutionStrategy.force 'com.android.support:support-annotations:26.1.0'
     }
+    implementation 'com.android.support:multidex:1.0.3'
 }

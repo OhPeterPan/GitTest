@@ -6,10 +6,12 @@ import com.dalimao.mytaxi.common.http.IHttpClient;
 import com.dalimao.mytaxi.common.http.IRequest;
 import com.dalimao.mytaxi.common.http.IResponse;
 import com.dalimao.mytaxi.common.http.api.Api;
+import com.dalimao.mytaxi.common.http.bean.CommonBean;
 import com.dalimao.mytaxi.common.http.impl.BaseRequest;
 import com.dalimao.mytaxi.common.http.impl.BaseResponse;
 import com.dalimao.mytaxi.common.http.impl.OkHttpClientImpl;
 import com.dalimao.mytaxi.main.bean.DivResponse;
+import com.dalimao.mytaxi.map.bean.LocationInfo;
 import com.dalimao.mytaxi.rx.RxBus;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -39,7 +41,7 @@ public class MainManagerImpl implements IMainManager {
                     try {
                         DivResponse divResponse = new Gson().fromJson(response.getData(), DivResponse.class);
                         if (divResponse.getCode() == BaseResponse.STATE_SUC_CODE) {
-                            Log.d("wak", "result：" + response.getData());
+                            //  Log.d("wak", "司机信息：" + response.getData());
                             return divResponse;
                         }
                     } catch (JsonSyntaxException e) {
@@ -47,6 +49,26 @@ public class MainManagerImpl implements IMainManager {
                     }
                 }
                 return null;
+            }
+        });
+    }
+
+    @Override
+    public void sendNetUploadMyLocation(final LocationInfo locationInfo) {
+        RxBus.getInstance().chainProcess(new Function() {
+            @Override
+            public Object apply(Object o) {
+
+                IRequest request = new BaseRequest(Api.Config.getDomain() + Api.UPLOAD_LOCATION_URL);
+                request.setBody("latitude", new Double(locationInfo.latitude).toString());
+                request.setBody("longitude", new Double(locationInfo.longitude).toString());
+                request.setBody("rotation", new Float(locationInfo.rotation).toString());
+                Log.i("wak", "key:" + locationInfo.key);
+                request.setBody("key", locationInfo.key);
+
+                IResponse response = client.post(request, false);
+                Log.i("wak", "位置上报：" + response.getData());
+                return new Gson().fromJson(response.getData(), CommonBean.class);
             }
         });
     }

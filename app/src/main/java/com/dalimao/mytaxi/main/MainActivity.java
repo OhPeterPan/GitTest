@@ -4,7 +4,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.widget.RelativeLayout;
 
 import com.blankj.utilcode.util.ToastUtils;
@@ -32,6 +31,10 @@ import com.dalimao.mytaxi.rx.RxBus;
 import com.dalimao.mytaxi.util.SharedPreferenceManager;
 import com.google.gson.Gson;
 
+import cn.bmob.push.BmobPush;
+import cn.bmob.v3.Bmob;
+import cn.bmob.v3.BmobInstallation;
+
 public class MainActivity extends AppCompatActivity implements IMainView {
 
     private IHttpClient client;
@@ -40,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements IMainView {
     private IMapLayer apLayer;
     private IMainPresenter presenter;
     private Bitmap divBitmap;
+    private String mPushKey = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,16 +56,17 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         apLayer.setLocationChangeListener(new IMapLayer.CommonLocationChangeListener() {
             @Override
             public void onLocationChanged(LocationInfo locationInfo) {
-                Log.i("wak", "多次回调？");
+                // Log.i("wak", "多次回调？");
                 //  apLayer.addOrUpdateMarker(locationInfo, BitmapFactory.decodeResource(getResources(), R.drawable.navi_map_gps_locked));
             }
 
             @Override
             public void onLocation(LocationInfo locationInfo) {
-                Log.i("wak", "啥意思？");
+                // Log.i("wak", "啥意思？");
                 apLayer.addOrUpdateMarker(locationInfo, BitmapFactory.decodeResource(getResources(), R.drawable.navi_map_gps_locked));
                 nearDivLocation(locationInfo.latitude, locationInfo.longitude);
-
+                //上报位置
+                uploadMyLocation(locationInfo);
             }
         });
         apLayer.onCreate(savedInstanceState);
@@ -72,10 +77,35 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         IMainManager mainManager = new MainManagerImpl();
         presenter = new MainPresenterImpl(this, mainManager);
         RxBus.getInstance().register(presenter);
+
+        startPushService();
+    }
+
+    private void startPushService() {
+        // 推送服务
+        // 初始化BmobSDK
+        Bmob.initialize(this, Api.Config.getApplicationKey());
+        // 使用推送服务时的初始化操作
+        BmobInstallation installation = BmobInstallation.getCurrentInstallation(this);
+        installation.save();
+        mPushKey = installation.getInstallationId();
+
+        // 启动推送服务
+        BmobPush.startWork(this);
+    }
+
+    /**
+     * 给后台上报我的位置 然后后台发通知给我
+     *
+     * @param locationInfo
+     */
+    private void uploadMyLocation(LocationInfo locationInfo) {
+        locationInfo.key = mPushKey;
+
+        presenter.sendNetUploadMyLocation(locationInfo);
     }
 
     private void nearDivLocation(double latitude, double longitude) {
-        Log.d("wak", "去请求司机:" + latitude + ":::" + longitude);
         presenter.sendNetNearLocation(latitude, longitude);
     }
 
@@ -90,9 +120,15 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         LocationInfo locationInfo;
         for (int i = 0; i < response.data.size(); i++) {
             locationInfo = response.data.get(i);
-            Log.d("wak", "司机位置:" + locationInfo.latitude + ":::" + locationInfo.longitude);
             apLayer.addOrUpdateMarker(locationInfo, divBitmap);
         }
+    }
+
+    @Override
+    public void updateDivLocation(LocationInfo locationInfo) {
+        if (divBitmap == null || divBitmap.isRecycled())
+            divBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.car);
+        apLayer.addOrUpdateMarker(locationInfo, divBitmap);
     }
 
     /**

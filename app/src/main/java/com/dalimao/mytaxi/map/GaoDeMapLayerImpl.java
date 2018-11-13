@@ -133,15 +133,16 @@ public class GaoDeMapLayerImpl implements IMapLayer {
                         public void onLocationChanged(AMapLocation amapLocation) {
                             if (mListener != null && amapLocation != null) {
                                 if (amapLocation != null && amapLocation.getErrorCode() == 0) {
-                                    mListener.onLocationChanged(amapLocation);// 显示系统小蓝点
-                                    CameraUpdate up = CameraUpdateFactory
-                                            .newCameraPosition(new CameraPosition(new LatLng(amapLocation.getLatitude(), amapLocation.getLongitude()),
-                                                    18, 30, 0));
-                                    aMap.moveCamera(up);
+                                   // mListener.onLocationChanged(amapLocation);// 显示系统小蓝点
+
                                     LocationInfo location = new LocationInfo(amapLocation.getLatitude(), amapLocation.getLongitude());
                                     location.key = KEY_MY_MARKERE;
                                     if (mFirstFix) {
                                         mFirstFix = false;
+                                        CameraUpdate up = CameraUpdateFactory
+                                                .newCameraPosition(new CameraPosition(new LatLng(amapLocation.getLatitude(), amapLocation.getLongitude()),
+                                                        18, 30, 0));
+                                        aMap.moveCamera(up);
                                         if (mLocationChangeListener != null)
                                             mLocationChangeListener.onLocation(location);
 
@@ -190,9 +191,6 @@ public class GaoDeMapLayerImpl implements IMapLayer {
     @Override
     public void onResume() {
         mapView.onResume();
-        if (mSensorHelper != null) {
-            mSensorHelper.registerSensorListener();
-        }
     }
 
     @Override
@@ -203,25 +201,22 @@ public class GaoDeMapLayerImpl implements IMapLayer {
     @Override
     public void onPause() {
         mapView.onPause();
-        mListener = null;
-        if (mlocationClient != null) {
-            mlocationClient.stopLocation();
-            mlocationClient.onDestroy();
-        }
-        if (mSensorHelper != null) {
-            mSensorHelper.unRegisterSensorListener();
-            mSensorHelper.setCurrentMarker(null);
-            mSensorHelper = null;
-        }
-        mlocationClient = null;
     }
 
     @Override
     public void onDestroy() {
         mapView.onDestroy();
-        if (null != mlocationClient) {
+        mListener = null;
+        if (mlocationClient != null) {
+            mlocationClient.stopLocation();
             mlocationClient.onDestroy();
+            mlocationClient = null;
         }
-        mSensorHelper.unRegisterSensorListener();
+
+        if (mSensorHelper != null) {
+            mSensorHelper.unRegisterSensorListener();
+            mSensorHelper.setCurrentMarker(null);
+            mSensorHelper = null;
+        }
     }
 }
