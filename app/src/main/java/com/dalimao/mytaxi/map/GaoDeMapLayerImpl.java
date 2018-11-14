@@ -133,8 +133,8 @@ public class GaoDeMapLayerImpl implements IMapLayer {
                         public void onLocationChanged(AMapLocation amapLocation) {
                             if (mListener != null && amapLocation != null) {
                                 if (amapLocation != null && amapLocation.getErrorCode() == 0) {
-                                   // mListener.onLocationChanged(amapLocation);// 显示系统小蓝点
-
+                                    mListener.onLocationChanged(amapLocation);// 显示系统小蓝点  没有这一句点击定位按钮无效
+                                    // Log.i("wak", "来吧？");
                                     LocationInfo location = new LocationInfo(amapLocation.getLatitude(), amapLocation.getLongitude());
                                     location.key = KEY_MY_MARKERE;
                                     if (mFirstFix) {
