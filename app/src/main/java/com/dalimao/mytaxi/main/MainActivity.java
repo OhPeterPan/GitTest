@@ -4,10 +4,18 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.widget.RelativeLayout;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AutoCompleteTextView;
+import android.widget.FrameLayout;
+import android.widget.TextView;
 
+import com.blankj.utilcode.util.StringUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.dalimao.mytaxi.R;
+import com.dalimao.mytaxi.adapter.PoiAdapter;
 import com.dalimao.mytaxi.common.http.IHttpClient;
 import com.dalimao.mytaxi.common.http.IRequest;
 import com.dalimao.mytaxi.common.http.IResponse;
@@ -31,6 +39,9 @@ import com.dalimao.mytaxi.rx.RxBus;
 import com.dalimao.mytaxi.util.SharedPreferenceManager;
 import com.google.gson.Gson;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import cn.bmob.push.BmobPush;
 import cn.bmob.v3.Bmob;
 import cn.bmob.v3.BmobInstallation;
@@ -39,11 +50,17 @@ public class MainActivity extends AppCompatActivity implements IMainView {
 
     private IHttpClient client;
 
-    private RelativeLayout relative_main_activity;
+    private FrameLayout relative_main_activity;
     private IMapLayer apLayer;
     private IMainPresenter presenter;
     private Bitmap divBitmap;
     private String mPushKey = "";
+    private LocationInfo startLacationInfo;
+    private TextView tvLocationCity;
+    private AutoCompleteTextView startLocation;
+    private AutoCompleteTextView endLocation;
+    private LocationInfo startLcationInfo;
+    private PoiAdapter poiAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,8 +79,13 @@ public class MainActivity extends AppCompatActivity implements IMainView {
 
             @Override
             public void onLocation(LocationInfo locationInfo) {
-                // Log.i("wak", "啥意思？");
+                // Log.i("wak", "第一次回调？");
+                startLcationInfo = locationInfo;
+                tvLocationCity.setText(apLayer.getCity());
+                startLocation.setText(startLcationInfo.name);
+
                 apLayer.addOrUpdateMarker(locationInfo, BitmapFactory.decodeResource(getResources(), R.drawable.navi_map_gps_locked));
+                startLacationInfo = locationInfo;
                 nearDivLocation(locationInfo.latitude, locationInfo.longitude);
                 //上报位置
                 uploadMyLocation(locationInfo);
@@ -71,14 +93,74 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         });
         apLayer.onCreate(savedInstanceState);
         //apLayer.setLocationRes(R.drawable.navi_map_gps_locked);
+        initView();
 
-        relative_main_activity = findViewById(R.id.relative_main_activity);
-        relative_main_activity.addView(apLayer.getMapView());
         IMainManager mainManager = new MainManagerImpl();
         presenter = new MainPresenterImpl(this, mainManager);
         RxBus.getInstance().register(presenter);
 
         startPushService();
+    }
+
+    private void initView() {
+        relative_main_activity = findViewById(R.id.mapContain);
+        tvLocationCity = findViewById(R.id.tvLocationCity);
+        startLocation = findViewById(R.id.startLocation);
+        endLocation = findViewById(R.id.endLocation);
+        relative_main_activity.addView(apLayer.getMapView());
+        endLocation.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String input = s.toString();
+                if (!StringUtils.isEmpty(input)) {//去查询poi
+                    apLayer.queryPoiAddress(input, new IMapLayer.SearchAddressListener() {
+                        @Override
+                        public void searchComplete(List<LocationInfo> results) {//得到所有的地址信息
+                            // 更新列表
+                            updatePoiList(results);
+
+                        }
+
+                        @Override
+                        public void searchError(int code) {
+
+                        }
+                    });
+
+                }
+            }
+        });
+    }
+
+    private void updatePoiList(List<LocationInfo> results) {
+        List<String> mData = new ArrayList<>();
+
+        for (LocationInfo locationInfo : results) {
+            mData.add(locationInfo.name);
+        }
+        if (poiAdapter == null) {
+            poiAdapter = new PoiAdapter(this, mData);
+            endLocation.setAdapter(poiAdapter);
+        } else {
+            poiAdapter.notifyData(mData);
+        }
+        endLocation.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+            }
+        });
+
     }
 
     private void startPushService() {
@@ -101,7 +183,6 @@ public class MainActivity extends AppCompatActivity implements IMainView {
      */
     private void uploadMyLocation(LocationInfo locationInfo) {
         locationInfo.key = mPushKey;
-
         presenter.sendNetUploadMyLocation(locationInfo);
     }
 

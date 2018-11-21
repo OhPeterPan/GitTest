@@ -23,10 +23,15 @@ import com.amap.api.maps2d.model.LatLng;
 import com.amap.api.maps2d.model.Marker;
 import com.amap.api.maps2d.model.MarkerOptions;
 import com.amap.api.maps2d.model.MyLocationStyle;
+import com.amap.api.services.help.Inputtips;
+import com.amap.api.services.help.InputtipsQuery;
+import com.amap.api.services.help.Tip;
 import com.dalimao.mytaxi.map.bean.LocationInfo;
 import com.dalimao.mytaxi.util.SensorEventHelper;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class GaoDeMapLayerImpl implements IMapLayer {
@@ -44,6 +49,7 @@ public class GaoDeMapLayerImpl implements IMapLayer {
     private Map<String, Marker> markerMap = new HashMap<>();
     private LocationSource.OnLocationChangedListener mListener;
     private boolean mFirstFix = true;
+    private String mCity;
 
     public GaoDeMapLayerImpl(Context context) {
         this.mContext = context;
@@ -135,11 +141,16 @@ public class GaoDeMapLayerImpl implements IMapLayer {
                                 if (amapLocation != null && amapLocation.getErrorCode() == 0) {
                                     mListener.onLocationChanged(amapLocation);// 显示系统小蓝点  没有这一句点击定位按钮无效
                                     // Log.i("wak", "来吧？");
+                                    //定位成功后把当前城市获取出来
+                                    mCity = amapLocation.getCity();
                                     LocationInfo location = new LocationInfo(amapLocation.getLatitude(), amapLocation.getLongitude());
+                                    location.name = amapLocation.getPoiName();
+                                    //  location.name = amapLocation.getAddress();
 
                                     location.key = KEY_MY_MARKERE;
                                     if (mFirstFix) {
                                         mFirstFix = false;
+                                        Log.i("wak", amapLocation.getLocationDetail() + ":::" + amapLocation.getDistrict() + ":::" + amapLocation.getStreet());
                                         CameraUpdate up = CameraUpdateFactory
                                                 .newCameraPosition(new CameraPosition(new LatLng(amapLocation.getLatitude(), amapLocation.getLongitude()),
                                                         18, 30, 0));
@@ -219,5 +230,37 @@ public class GaoDeMapLayerImpl implements IMapLayer {
             mSensorHelper.setCurrentMarker(null);
             mSensorHelper = null;
         }
+    }
+
+    @Override
+    public String getCity() {
+        return mCity;
+    }
+
+    @Override
+    public void queryPoiAddress(String input, final SearchAddressListener listener) {
+        //第二个参数传入null或者“”代表在全国进行检索，否则按照传入的city进行检索
+        InputtipsQuery inputquery = new InputtipsQuery(input, "");
+        //inputquery.setCityLimit(true);//限制在当前城市
+        Inputtips inputTips = new Inputtips(mContext, inputquery);
+        inputTips.setInputtipsListener(new Inputtips.InputtipsListener() {
+            @Override
+            public void onGetInputtips(List<Tip> list, int rCode) {
+                if (rCode == 1000) {
+                    List<LocationInfo> locationInfos = new ArrayList<LocationInfo>();
+                    LocationInfo locationInfo;
+                    for (Tip tip : list) {
+                        locationInfo = new LocationInfo(tip.getPoint().getLatitude(), tip.getPoint().getLongitude());
+                        locationInfo.name = tip.getName();
+                        locationInfos.add(locationInfo);
+                    }
+                    listener.searchComplete(locationInfos);
+                } else {
+                    listener.searchError(rCode);
+                }
+
+            }
+        });
+        inputTips.requestInputtipsAsyn();
     }
 }

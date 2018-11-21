@@ -6,6 +6,8 @@ import android.view.View;
 
 import com.dalimao.mytaxi.map.bean.LocationInfo;
 
+import java.util.List;
+
 public interface IMapLayer {
     /**
      * 获取地图
@@ -40,6 +42,16 @@ public interface IMapLayer {
     void onPause();
 
     void onDestroy();
+
+    String getCity();
+
+    void queryPoiAddress(String input, SearchAddressListener listener);
+
+    interface SearchAddressListener {
+        void searchComplete(List<LocationInfo> locationInfo);
+
+        void searchError(int code);
+    }
 
     /**
      * Created by liuguangli on 17/5/30.
