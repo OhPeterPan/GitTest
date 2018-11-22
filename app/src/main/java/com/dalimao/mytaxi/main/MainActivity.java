@@ -2,6 +2,7 @@ package com.dalimao.mytaxi.main;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
@@ -26,6 +27,7 @@ import com.dalimao.mytaxi.common.http.impl.BaseRequest;
 import com.dalimao.mytaxi.common.http.impl.BaseResponse;
 import com.dalimao.mytaxi.common.http.impl.OkHttpClientImpl;
 import com.dalimao.mytaxi.dialog.PhoneInoutDialog;
+import com.dalimao.mytaxi.main.bean.DivInfoBean;
 import com.dalimao.mytaxi.main.bean.DivResponse;
 import com.dalimao.mytaxi.main.manager.IMainManager;
 import com.dalimao.mytaxi.main.manager.MainManagerImpl;
@@ -55,7 +57,7 @@ public class MainActivity extends AppCompatActivity implements IMainView {
     private IMainPresenter presenter;
     private Bitmap divBitmap;
     private String mPushKey = "";
-    private LocationInfo startLacationInfo;
+    private LocationInfo startLocationInfo;
     private TextView tvLocationCity;
     private AutoCompleteTextView startLocation;
     private AutoCompleteTextView endLocation;
@@ -85,7 +87,7 @@ public class MainActivity extends AppCompatActivity implements IMainView {
                 startLocation.setText(startLcationInfo.name);
 
                 apLayer.addOrUpdateMarker(locationInfo, BitmapFactory.decodeResource(getResources(), R.drawable.navi_map_gps_locked));
-                startLacationInfo = locationInfo;
+                startLocationInfo = locationInfo;
                 nearDivLocation(locationInfo.latitude, locationInfo.longitude);
                 //上报位置
                 uploadMyLocation(locationInfo);
@@ -142,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         });
     }
 
-    private void updatePoiList(List<LocationInfo> results) {
+    private void updatePoiList(final List<LocationInfo> results) {
         List<String> mData = new ArrayList<>();
 
         for (LocationInfo locationInfo : results) {
@@ -157,7 +159,22 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         endLocation.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String end = (String) poiAdapter.getItem(position);
+                endLocation.setText(end);
+                final LocationInfo endLocationInfo = results.get(position);
+                apLayer.clearAllMark();
+                apLayer.polyline(startLocationInfo, endLocationInfo, Color.GREEN, new IMapLayer.PolylineCompleteListener() {
 
+                    @Override
+                    public void polylineComplete(DivInfoBean bean) {
+                        apLayer.moveCamera(startLocationInfo, endLocationInfo);
+                    }
+
+                    @Override
+                    public void polylineError(int code) {
+
+                    }
+                });
             }
         });
 

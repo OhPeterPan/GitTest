@@ -20,12 +20,24 @@ import com.amap.api.maps2d.model.BitmapDescriptor;
 import com.amap.api.maps2d.model.BitmapDescriptorFactory;
 import com.amap.api.maps2d.model.CameraPosition;
 import com.amap.api.maps2d.model.LatLng;
+import com.amap.api.maps2d.model.LatLngBounds;
 import com.amap.api.maps2d.model.Marker;
 import com.amap.api.maps2d.model.MarkerOptions;
 import com.amap.api.maps2d.model.MyLocationStyle;
+import com.amap.api.maps2d.model.PolylineOptions;
+import com.amap.api.services.core.AMapException;
+import com.amap.api.services.core.LatLonPoint;
 import com.amap.api.services.help.Inputtips;
 import com.amap.api.services.help.InputtipsQuery;
 import com.amap.api.services.help.Tip;
+import com.amap.api.services.route.BusRouteResult;
+import com.amap.api.services.route.DrivePath;
+import com.amap.api.services.route.DriveRouteResult;
+import com.amap.api.services.route.DriveStep;
+import com.amap.api.services.route.RideRouteResult;
+import com.amap.api.services.route.RouteSearch;
+import com.amap.api.services.route.WalkRouteResult;
+import com.dalimao.mytaxi.main.bean.DivInfoBean;
 import com.dalimao.mytaxi.map.bean.LocationInfo;
 import com.dalimao.mytaxi.util.SensorEventHelper;
 
@@ -50,6 +62,7 @@ public class GaoDeMapLayerImpl implements IMapLayer {
     private LocationSource.OnLocationChangedListener mListener;
     private boolean mFirstFix = true;
     private String mCity;
+    private RouteSearch mRouteSearch;
 
     public GaoDeMapLayerImpl(Context context) {
         this.mContext = context;
@@ -262,5 +275,97 @@ public class GaoDeMapLayerImpl implements IMapLayer {
             }
         });
         inputTips.requestInputtipsAsyn();
+    }
+
+    //绘制线  绘制完成后需要回调
+    @Override
+    public void polyline(final LocationInfo startLocationInfo, final LocationInfo endLocationInfo, final int color, final PolylineCompleteListener listener) {
+        LatLonPoint mStartPoint = new LatLonPoint(startLocationInfo.latitude, startLocationInfo.longitude);
+        LatLonPoint mEndPoint = new LatLonPoint(endLocationInfo.latitude, endLocationInfo.longitude);
+        final RouteSearch.FromAndTo fromAndTo = new RouteSearch.FromAndTo(mStartPoint, mEndPoint);
+        RouteSearch.DriveRouteQuery query = new RouteSearch.DriveRouteQuery(fromAndTo, RouteSearch.DrivingDefault, null,
+                null, "");// 第一个参数表示路径规划的起点和终点，第二个参数表示驾车模式，第三个参数表示途经点，第四个参数表示避让区域，第五个参数表示避让道路
+
+        if (mRouteSearch == null) {
+            mRouteSearch = new RouteSearch(mContext);
+            mRouteSearch.setRouteSearchListener(new RouteSearch.OnRouteSearchListener() {
+                @Override
+                public void onBusRouteSearched(BusRouteResult busRouteResult, int i) {
+
+                }
+
+                @Override
+                public void onDriveRouteSearched(DriveRouteResult driveRouteResult, int errorCode) {
+                    if (errorCode == AMapException.CODE_AMAP_SUCCESS) {
+                        if (driveRouteResult != null && driveRouteResult.getPaths() != null) {
+                            if (driveRouteResult.getPaths().size() > 0) {
+                                PolylineOptions polylineOptions = new PolylineOptions();
+
+                                polylineOptions.color(color);
+                                polylineOptions.add(new LatLng(startLocationInfo.latitude, startLocationInfo.longitude));
+
+                                DrivePath drivePath = driveRouteResult.getPaths().get(0);//选择第一条路径
+                                List<DriveStep> steps = drivePath.getSteps();
+
+                                List<LatLonPoint> polyline;
+                                for (DriveStep step : steps) {
+
+                                    polyline = step.getPolyline();
+                                    for (LatLonPoint latLonPoint : polyline) {
+                                        polylineOptions.add(new LatLng(latLonPoint.getLatitude(), latLonPoint.getLongitude()));
+                                    }
+                                }
+                                polylineOptions.add(new LatLng(endLocationInfo.latitude, endLocationInfo.longitude));
+                                aMap.addPolyline(polylineOptions);
+
+                                if (listener != null) {
+                                    DivInfoBean divInfoBean = new DivInfoBean();
+                                    divInfoBean.cost = driveRouteResult.getTaxiCost();
+                                    divInfoBean.duration = 10 + new Long(drivePath.getDuration() / 1000 * 60).intValue();
+                                    divInfoBean.distance = 0.5f + drivePath.getDistance() / 1000;
+                                    listener.polylineComplete(divInfoBean);
+                                }
+
+                            }
+                        }
+                    }
+
+
+                }
+
+                @Override
+                public void onWalkRouteSearched(WalkRouteResult walkRouteResult, int i) {
+
+                }
+
+                @Override
+                public void onRideRouteSearched(RideRouteResult rideRouteResult, int i) {
+
+                }
+            });
+        }
+
+        mRouteSearch.calculateDriveRouteAsyn(query);// 异步路径规划驾车模式查询
+
+    }
+
+    @Override
+    public void clearAllMark() {
+        aMap.clear();
+        markerMap.clear();
+    }
+
+    @Override
+    public void moveCamera(LocationInfo startLocationInfo, LocationInfo endLocationInfo) {
+        try {
+            LatLngBounds.Builder builder = LatLngBounds.builder();
+            builder.include(new LatLng(startLocationInfo.latitude, startLocationInfo.longitude));
+            builder.include(new LatLng(endLocationInfo.latitude, endLocationInfo.longitude));
+            LatLngBounds latLngBounds = builder.build();
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(latLngBounds, 100);
+            aMap.moveCamera(cameraUpdate);
+        } catch (Exception e) {
+            Log.e("wak", e.getCause().getMessage());
+        }
     }
 }

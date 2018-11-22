@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
 
+import com.dalimao.mytaxi.main.bean.DivInfoBean;
 import com.dalimao.mytaxi.map.bean.LocationInfo;
 
 import java.util.List;
@@ -47,10 +48,23 @@ public interface IMapLayer {
 
     void queryPoiAddress(String input, SearchAddressListener listener);
 
+    void polyline(LocationInfo startLocationInfo, LocationInfo endLocationInfo, int color, PolylineCompleteListener listener);
+
+    //清理地图上所有的覆盖物
+    void clearAllMark();
+
+    void moveCamera(LocationInfo startLocationInfo, LocationInfo endLocationInfo);
+
     interface SearchAddressListener {
         void searchComplete(List<LocationInfo> locationInfo);
 
         void searchError(int code);
+    }
+
+    interface PolylineCompleteListener {
+        void polylineComplete(DivInfoBean bean);
+
+        void polylineError(int code);
     }
 
     /**
