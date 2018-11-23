@@ -369,4 +369,12 @@ public class GaoDeMapLayerImpl implements IMapLayer {
             Log.e("wak", e.getCause().getMessage());
         }
     }
+
+    @Override
+    public void moveCameraToPoint(LocationInfo locationInfo,int scale) {
+        CameraUpdate up = CameraUpdateFactory
+                .newCameraPosition(new CameraPosition(new LatLng(locationInfo.latitude, locationInfo.longitude),
+                        18, 30, 0));
+        aMap.moveCamera(up);
+    }
 }

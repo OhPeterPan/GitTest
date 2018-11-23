@@ -11,7 +11,11 @@ public interface IResponse {
 
     void setData(String data);
 
+    void setException(Exception e);
+
     int getCode();
 
     String getData();
+
+    Exception getException();
 }

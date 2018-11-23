@@ -12,6 +12,7 @@ import com.dalimao.mytaxi.common.http.impl.BaseRequest;
 import com.dalimao.mytaxi.common.http.impl.BaseResponse;
 import com.dalimao.mytaxi.common.http.impl.OkHttpClientImpl;
 import com.dalimao.mytaxi.main.bean.DivResponse;
+import com.dalimao.mytaxi.main.bean.Order;
 import com.dalimao.mytaxi.main.bean.OrderStateResponse;
 import com.dalimao.mytaxi.map.bean.LocationInfo;
 import com.dalimao.mytaxi.rx.RxBus;
@@ -101,12 +102,38 @@ public class MainManagerImpl implements IMainManager {
                 IResponse response = client.post(request, false);
                 Log.i("wak", "呼叫司机：" + response.getData());
                 if (response.getCode() == BaseResponse.STATE_SUC_CODE) {
-                    return new Gson().fromJson(response.getData(), OrderStateResponse.class);
+                    OrderStateResponse orderStateResponse = new Gson().fromJson(response.getData(), OrderStateResponse.class);
+                    orderStateResponse.state = OrderStateResponse.CALL_DIVER_STATE;
+                    return orderStateResponse;
                 } else {
                     return null;
                 }
             }
         });
 
+    }
+
+    @Override
+    public void cancelOrder(final Order mCurrentOrder) {
+        RxBus.getInstance().chainProcess(new Function() {
+            @Override
+            public Object apply(Object o) throws Exception {
+                IRequest request = new BaseRequest(Api.Config.getDomain() + Api.CANCEL_ORDER_URL);
+                request.setBody("id", mCurrentOrder.orderId);
+                IResponse response = client.post(request, false);
+                if (response.getCode() == BaseResponse.STATE_SUC_CODE) {//连接成功
+                    Log.i("wak", response.getData());
+                    // return null;
+                    // OrderStateResponse orderStateResponse = new Gson().fromJson(response.getData(), OrderStateResponse.class);
+                    OrderStateResponse orderStateResponse = new OrderStateResponse();
+                    orderStateResponse.state = OrderStateResponse.CANCEL_ORDER_STATE;
+                    return orderStateResponse;
+                } else {//连接失败
+
+                    return response;
+                }
+
+            }
+        });
     }
 }

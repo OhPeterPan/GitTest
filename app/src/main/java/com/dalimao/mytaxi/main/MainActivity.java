@@ -75,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements IMainView, View.O
     private float mCost;
     private LinearLayout loading_area;
     private Button btn_cancel;
+    private TextView loading_text;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,6 +119,7 @@ public class MainActivity extends AppCompatActivity implements IMainView, View.O
 
     private void initListener() {
         btn_call_driver.setOnClickListener(this);
+        btn_cancel.setOnClickListener(this);
     }
 
     @Override
@@ -126,7 +128,49 @@ public class MainActivity extends AppCompatActivity implements IMainView, View.O
             case R.id.btn_call_driver://呼叫司机
                 callDiv();
                 break;
+            case R.id.btn_cancel://取消
+                cancelOrder();
+                break;
         }
+    }
+
+    /**
+     * 取消 分为两种  1 已经后台呼叫司机   2 还没有呼叫司机
+     */
+    private void cancelOrder() {
+        if (!btn_call_driver.isEnabled()) {//已经呼叫司机
+            showCanceling();
+            presenter.cancelOrder();
+        } else {
+            resolveUi();
+        }
+    }
+
+    @Override
+    public void cancelOrderSuc(OrderStateResponse response) {
+        btn_call_driver.setEnabled(true);
+        btn_cancel.setEnabled(true);
+        resolveUi();
+    }
+
+    private void showCanceling() {
+        tips_info.setVisibility(View.GONE);
+        loading_area.setVisibility(View.VISIBLE);
+        loading_text.setText(getResources().getString(R.string.canceling));
+        btn_cancel.setEnabled(false);
+    }
+
+    private void hintOpera() {
+        optArea.setVisibility(View.GONE);
+        loading_area.setVisibility(View.GONE);
+    }
+
+    private void resolveUi() {
+        hintOpera();
+        apLayer.clearAllMark();
+        apLayer.addOrUpdateMarker(startLocationInfo, BitmapFactory.decodeResource(getResources(), R.drawable.navi_map_gps_locked));
+        nearDivLocation(startLocationInfo.latitude, startLocationInfo.longitude);
+        apLayer.moveCameraToPoint(startLocationInfo, 17);
     }
 
     /**
@@ -153,7 +197,7 @@ public class MainActivity extends AppCompatActivity implements IMainView, View.O
         loading_area = findViewById(R.id.loading_area);
 
         tips_info = findViewById(R.id.tips_info);
-        TextView loading_text = findViewById(R.id.loading_text);
+        loading_text = findViewById(R.id.loading_text);
         btn_call_driver = findViewById(R.id.btn_call_driver);
         btn_cancel = findViewById(R.id.btn_cancel);
         Button btn_pay = findViewById(R.id.btn_pay);
@@ -324,6 +368,14 @@ public class MainActivity extends AppCompatActivity implements IMainView, View.O
         btn_call_driver.setEnabled(false);
         btn_cancel.setEnabled(true);
         tips_info.setText(getResources().getString(R.string.show_call_suc));
+    }
+
+    @Override
+    public void cancelOrderFail() {
+        ToastUtils.showShort(getResources().getString(R.string.cancel_fail));
+        btn_cancel.setEnabled(true);
+        tips_info.setText(getResources().getString(R.string.cancel_fail));
+        loading_area.setVisibility(View.GONE);
     }
 
     /**

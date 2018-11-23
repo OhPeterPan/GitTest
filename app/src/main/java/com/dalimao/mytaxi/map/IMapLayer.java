@@ -55,6 +55,8 @@ public interface IMapLayer {
 
     void moveCamera(LocationInfo startLocationInfo, LocationInfo endLocationInfo);
 
+    void moveCameraToPoint(LocationInfo locationInfo, int scale);
+
     interface SearchAddressListener {
         void searchComplete(List<LocationInfo> locationInfo);
 

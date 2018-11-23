@@ -1,5 +1,6 @@
 package com.dalimao.mytaxi.main.manager;
 
+import com.dalimao.mytaxi.main.bean.Order;
 import com.dalimao.mytaxi.map.bean.LocationInfo;
 
 public interface IMainManager {
@@ -8,4 +9,6 @@ public interface IMainManager {
     void sendNetUploadMyLocation(LocationInfo locationInfo);
 
     void sendNetCallDriver(String key, float mCost, LocationInfo startLocationInfo, LocationInfo endLocationInfo);
+
+    void cancelOrder(Order mCurrentOrder);
 }

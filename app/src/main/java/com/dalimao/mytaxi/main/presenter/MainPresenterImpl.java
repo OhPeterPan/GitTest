@@ -1,6 +1,8 @@
 package com.dalimao.mytaxi.main.presenter;
 
+import com.dalimao.mytaxi.common.http.IResponse;
 import com.dalimao.mytaxi.main.bean.DivResponse;
+import com.dalimao.mytaxi.main.bean.Order;
 import com.dalimao.mytaxi.main.bean.OrderStateResponse;
 import com.dalimao.mytaxi.main.manager.IMainManager;
 import com.dalimao.mytaxi.main.view.IMainView;
@@ -11,6 +13,7 @@ public class MainPresenterImpl implements IMainPresenter {
 
     private IMainView view;
     private IMainManager mainManager;
+    private Order mCurrentOrder;
 
     public MainPresenterImpl(IMainView view, IMainManager mainManager) {
         this.view = view;
@@ -32,6 +35,15 @@ public class MainPresenterImpl implements IMainPresenter {
         mainManager.sendNetCallDriver(key, mCost, startLocationInfo, endLocationInfo);
     }
 
+    @Override
+    public void cancelOrder() {
+        if (mCurrentOrder != null) {
+            mainManager.cancelOrder(mCurrentOrder);
+        } else {
+            view.cancelOrderFail();
+        }
+    }
+
     @RegisterBus
     public void getNearDivResponse(DivResponse response) {
         view.getNearDivResponse(response);
@@ -44,6 +56,19 @@ public class MainPresenterImpl implements IMainPresenter {
 
     @RegisterBus
     public void callDriverCallback(OrderStateResponse response) {
-        view.callDriverCallback(response);
+        if (response.state == OrderStateResponse.CALL_DIVER_STATE) {//呼叫司机
+            mCurrentOrder = response.data;
+            view.callDriverCallback(response);
+        } else if (response.state == OrderStateResponse.CANCEL_ORDER_STATE) {//取消订单
+            view.cancelOrderSuc(response);
+        }
     }
+
+    //联网出现问题使用这个
+    @RegisterBus
+    public void commResponse(IResponse response) {
+
+    }
+
+
 }

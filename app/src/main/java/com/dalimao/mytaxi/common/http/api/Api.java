@@ -12,6 +12,7 @@ public class Api {
     public static final String NEAR_DIV_URL = "f34e28da5816433d/getNearDrivers?latitude=${latitude}&longitude=${longitude}";
     public static final String UPLOAD_LOCATION_URL = "f34e28da5816433d/updateUserLocation";
     public static final String CALL_DRIVER_URL = "f34e28da5816433d/callDriver";
+    public static final String CANCEL_ORDER_URL = "f34e28da5816433d/cancelOrder";
 
     public static class Config {
         private static final String TEST_DOMAIN = "http://cloud.bmob.cn/";//HTTP://httpbin.org

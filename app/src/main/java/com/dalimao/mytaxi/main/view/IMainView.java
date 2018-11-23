@@ -10,4 +10,8 @@ public interface IMainView extends IView {
     void updateDivLocation(LocationInfo locationInfo);
 
     void callDriverCallback(OrderStateResponse response);
+
+    void cancelOrderFail();
+
+    void cancelOrderSuc(OrderStateResponse response);
 }

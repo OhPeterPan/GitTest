@@ -32,22 +32,6 @@ public class OkHttpClientImpl implements IHttpClient {
         return execute(okRequest);
     }
 
-    private IResponse execute(Request request) {
-        BaseResponse commonResponse = new BaseResponse();
-        try {
-            Response response = client.newCall(request).execute();
-            String result = response.body().string();
-            commonResponse.setCode(response.code());
-            commonResponse.setData(result);
-        } catch (IOException e) {
-            e.printStackTrace();
-            commonResponse.setCode(IResponse.STATE_ERROR_CODE);
-            commonResponse.setData(e.getMessage());
-        }
-
-        return commonResponse;
-    }
-
     @Override
     public IResponse post(IRequest request, boolean forceCache) {
         request.setMethod(IRequest.POST);
@@ -63,5 +47,21 @@ public class OkHttpClientImpl implements IHttpClient {
         }
         Request okRequest = builder.url(request.getUrl()).post(requestBody).build();
         return execute(okRequest);
+    }
+
+    private IResponse execute(Request request) {
+        BaseResponse commonResponse = new BaseResponse();
+        try {
+            Response response = client.newCall(request).execute();
+            String result = response.body().string();
+            commonResponse.setCode(response.code());
+            commonResponse.setData(result);
+        } catch (IOException e) {
+            e.printStackTrace();
+            commonResponse.setCode(IResponse.STATE_ERROR_CODE);
+            commonResponse.setException(e);
+        }
+
+        return commonResponse;
     }
 }
