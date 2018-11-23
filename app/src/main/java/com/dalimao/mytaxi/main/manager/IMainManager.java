@@ -6,4 +6,6 @@ public interface IMainManager {
     void sendNetNearDivLocation(double latitude, double longitude);
 
     void sendNetUploadMyLocation(LocationInfo locationInfo);
+
+    void sendNetCallDriver(String key, float mCost, LocationInfo startLocationInfo, LocationInfo endLocationInfo);
 }

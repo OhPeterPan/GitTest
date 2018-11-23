@@ -6,13 +6,16 @@ import com.dalimao.mytaxi.common.http.IHttpClient;
 import com.dalimao.mytaxi.common.http.IRequest;
 import com.dalimao.mytaxi.common.http.IResponse;
 import com.dalimao.mytaxi.common.http.api.Api;
+import com.dalimao.mytaxi.common.http.bean.Account;
 import com.dalimao.mytaxi.common.http.bean.CommonBean;
 import com.dalimao.mytaxi.common.http.impl.BaseRequest;
 import com.dalimao.mytaxi.common.http.impl.BaseResponse;
 import com.dalimao.mytaxi.common.http.impl.OkHttpClientImpl;
 import com.dalimao.mytaxi.main.bean.DivResponse;
+import com.dalimao.mytaxi.main.bean.OrderStateResponse;
 import com.dalimao.mytaxi.map.bean.LocationInfo;
 import com.dalimao.mytaxi.rx.RxBus;
+import com.dalimao.mytaxi.util.SharedPreferenceManager;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
@@ -68,8 +71,42 @@ public class MainManagerImpl implements IMainManager {
 
                 IResponse response = client.post(request, false);
                 Log.i("wak", "位置上报：" + response.getData());
-                return new Gson().fromJson(response.getData(), CommonBean.class);
+                if (response.getCode() == BaseResponse.STATE_SUC_CODE)
+                    return new Gson().fromJson(response.getData(), CommonBean.class);
+                else
+                    return null;
             }
         });
+    }
+
+    @Override
+    public void sendNetCallDriver(final String key, final float mCost, final LocationInfo startLocationInfo, final LocationInfo endLocationInfo) {
+        RxBus.getInstance().chainProcess(new Function() {
+            @Override
+            public Object apply(Object o) {
+                Account account = (Account) SharedPreferenceManager.get(SharedPreferenceManager.ACCOUNT_KEY, Account.class);
+                IRequest request = new BaseRequest(Api.Config.getDomain() + Api.CALL_DRIVER_URL);
+                request.setBody("key", key);
+                request.setBody("uid", account.uid);
+                request.setBody("phone", account.account);
+                request.setBody("startLatitude",
+                        new Double(startLocationInfo.latitude).toString());
+                request.setBody("startLongitude",
+                        new Double(startLocationInfo.longitude).toString());
+                request.setBody("endLatitude",
+                        new Double(endLocationInfo.latitude).toString());
+                request.setBody("endLongitude",
+                        new Double(endLocationInfo.longitude).toString());
+                request.setBody("cost", new Float(mCost).toString());
+                IResponse response = client.post(request, false);
+                Log.i("wak", "呼叫司机：" + response.getData());
+                if (response.getCode() == BaseResponse.STATE_SUC_CODE) {
+                    return new Gson().fromJson(response.getData(), OrderStateResponse.class);
+                } else {
+                    return null;
+                }
+            }
+        });
+
     }
 }

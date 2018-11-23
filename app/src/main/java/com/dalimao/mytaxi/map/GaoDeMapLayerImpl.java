@@ -109,7 +109,7 @@ public class GaoDeMapLayerImpl implements IMapLayer {
             Marker marker = aMap.addMarker(options);
             marker.setRotateAngle(locationInfo.rotation);
             markerMap.put(locationInfo.key, marker);
-            if (mSensorHelper != null && locationInfo.key.equals(KEY_MY_MARKERE))
+            if (mSensorHelper != null && KEY_MY_MARKERE.equals(locationInfo.key))
                 mSensorHelper.setCurrentMarker(marker);//定位图标旋转
         }
 
@@ -321,7 +321,8 @@ public class GaoDeMapLayerImpl implements IMapLayer {
                                 if (listener != null) {
                                     DivInfoBean divInfoBean = new DivInfoBean();
                                     divInfoBean.cost = driveRouteResult.getTaxiCost();
-                                    divInfoBean.duration = 10 + new Long(drivePath.getDuration() / 1000 * 60).intValue();
+                                    // divInfoBean.cost = drivePath.getTolls();
+                                    divInfoBean.duration = 10 + new Long(drivePath.getDuration() / 60).intValue();//   / 1000 *
                                     divInfoBean.distance = 0.5f + drivePath.getDistance() / 1000;
                                     listener.polylineComplete(divInfoBean);
                                 }

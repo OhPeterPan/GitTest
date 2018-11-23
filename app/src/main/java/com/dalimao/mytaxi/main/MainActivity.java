@@ -10,9 +10,12 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.blankj.utilcode.util.KeyboardUtils;
 import com.blankj.utilcode.util.StringUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.dalimao.mytaxi.R;
@@ -29,6 +32,7 @@ import com.dalimao.mytaxi.common.http.impl.OkHttpClientImpl;
 import com.dalimao.mytaxi.dialog.PhoneInoutDialog;
 import com.dalimao.mytaxi.main.bean.DivInfoBean;
 import com.dalimao.mytaxi.main.bean.DivResponse;
+import com.dalimao.mytaxi.main.bean.OrderStateResponse;
 import com.dalimao.mytaxi.main.manager.IMainManager;
 import com.dalimao.mytaxi.main.manager.MainManagerImpl;
 import com.dalimao.mytaxi.main.presenter.IMainPresenter;
@@ -48,21 +52,29 @@ import cn.bmob.push.BmobPush;
 import cn.bmob.v3.Bmob;
 import cn.bmob.v3.BmobInstallation;
 
-public class MainActivity extends AppCompatActivity implements IMainView {
+public class MainActivity extends AppCompatActivity implements IMainView, View.OnClickListener {
 
     private IHttpClient client;
 
     private FrameLayout relative_main_activity;
     private IMapLayer apLayer;
     private IMainPresenter presenter;
-    private Bitmap divBitmap;
+    private Bitmap divBitmap, mStartBit, mEndBit;
     private String mPushKey = "";
     private LocationInfo startLocationInfo;
     private TextView tvLocationCity;
     private AutoCompleteTextView startLocation;
     private AutoCompleteTextView endLocation;
-    private LocationInfo startLcationInfo;
     private PoiAdapter poiAdapter;
+    private LocationInfo endLocationInfo;
+    private LinearLayout select_area;
+    private LinearLayout optArea;
+    private TextView tips_info;
+    private Button btn_call_driver;
+    private boolean isLogin = true;//判断是否登陆
+    private float mCost;
+    private LinearLayout loading_area;
+    private Button btn_cancel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,9 +94,9 @@ public class MainActivity extends AppCompatActivity implements IMainView {
             @Override
             public void onLocation(LocationInfo locationInfo) {
                 // Log.i("wak", "第一次回调？");
-                startLcationInfo = locationInfo;
+                startLocationInfo = locationInfo;
                 tvLocationCity.setText(apLayer.getCity());
-                startLocation.setText(startLcationInfo.name);
+                startLocation.setText(startLocationInfo.name);
 
                 apLayer.addOrUpdateMarker(locationInfo, BitmapFactory.decodeResource(getResources(), R.drawable.navi_map_gps_locked));
                 startLocationInfo = locationInfo;
@@ -96,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         apLayer.onCreate(savedInstanceState);
         //apLayer.setLocationRes(R.drawable.navi_map_gps_locked);
         initView();
-
+        initListener();
         IMainManager mainManager = new MainManagerImpl();
         presenter = new MainPresenterImpl(this, mainManager);
         RxBus.getInstance().register(presenter);
@@ -104,11 +116,48 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         startPushService();
     }
 
+    private void initListener() {
+        btn_call_driver.setOnClickListener(this);
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.btn_call_driver://呼叫司机
+                callDiv();
+                break;
+        }
+    }
+
+    /**
+     * 呼叫司机
+     */
+    private void callDiv() {
+        if (isLogin) {
+            loading_area.setVisibility(View.VISIBLE);
+            tips_info.setVisibility(View.GONE);
+            presenter.callDriver(mPushKey, mCost, startLocationInfo, endLocationInfo);
+        } else {//去登陆
+
+        }
+
+    }
+
     private void initView() {
         relative_main_activity = findViewById(R.id.mapContain);
         tvLocationCity = findViewById(R.id.tvLocationCity);
         startLocation = findViewById(R.id.startLocation);
         endLocation = findViewById(R.id.endLocation);
+        select_area = findViewById(R.id.select_area);
+        optArea = findViewById(R.id.optArea);
+        loading_area = findViewById(R.id.loading_area);
+
+        tips_info = findViewById(R.id.tips_info);
+        TextView loading_text = findViewById(R.id.loading_text);
+        btn_call_driver = findViewById(R.id.btn_call_driver);
+        btn_cancel = findViewById(R.id.btn_cancel);
+        Button btn_pay = findViewById(R.id.btn_pay);
+
         relative_main_activity.addView(apLayer.getMapView());
         endLocation.addTextChangedListener(new TextWatcher() {
             @Override
@@ -161,23 +210,62 @@ public class MainActivity extends AppCompatActivity implements IMainView {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String end = (String) poiAdapter.getItem(position);
                 endLocation.setText(end);
-                final LocationInfo endLocationInfo = results.get(position);
-                apLayer.clearAllMark();
-                apLayer.polyline(startLocationInfo, endLocationInfo, Color.GREEN, new IMapLayer.PolylineCompleteListener() {
-
-                    @Override
-                    public void polylineComplete(DivInfoBean bean) {
-                        apLayer.moveCamera(startLocationInfo, endLocationInfo);
-                    }
-
-                    @Override
-                    public void polylineError(int code) {
-
-                    }
-                });
+                endLocationInfo = results.get(position);
+                KeyboardUtils.hideSoftInput(MainActivity.this);
+                showRoute(startLocationInfo, endLocationInfo);
             }
         });
 
+    }
+
+    private void showRoute(final LocationInfo startLocationInfo, final LocationInfo endLocationInfo) {
+
+        apLayer.clearAllMark();
+        addStartMarker();
+        addEndMarker();
+        apLayer.polyline(startLocationInfo, endLocationInfo, Color.GREEN, new IMapLayer.PolylineCompleteListener() {
+            @Override
+            public void polylineComplete(DivInfoBean bean) {
+
+                apLayer.moveCamera(startLocationInfo, endLocationInfo);
+                showOptArea();
+                mCost = bean.cost;
+
+                String infoString = getString(R.string.route_info);
+                infoString = String.format(infoString,
+                        new Float(bean.distance).intValue(),
+                        mCost,
+                        bean.duration);
+                tips_info.setVisibility(View.VISIBLE);
+                tips_info.setText(infoString);
+            }
+
+            @Override
+            public void polylineError(int code) {
+
+            }
+        });
+
+    }
+
+    private void showOptArea() {
+        optArea.setVisibility(View.VISIBLE);
+    }
+
+    private void addStartMarker() {
+        if (mStartBit == null || mStartBit.isRecycled()) {
+            mStartBit = BitmapFactory.decodeResource(getResources(),
+                    R.drawable.start);
+        }
+        apLayer.addOrUpdateMarker(startLocationInfo, mStartBit);
+    }
+
+    private void addEndMarker() {
+        if (mEndBit == null || mEndBit.isRecycled()) {
+            mEndBit = BitmapFactory.decodeResource(getResources(),
+                    R.drawable.end);
+        }
+        apLayer.addOrUpdateMarker(endLocationInfo, mEndBit);
     }
 
     private void startPushService() {
@@ -227,6 +315,15 @@ public class MainActivity extends AppCompatActivity implements IMainView {
         if (divBitmap == null || divBitmap.isRecycled())
             divBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.car);
         apLayer.addOrUpdateMarker(locationInfo, divBitmap);
+    }
+
+    @Override
+    public void callDriverCallback(OrderStateResponse response) {
+        loading_area.setVisibility(View.GONE);
+        tips_info.setVisibility(View.VISIBLE);
+        btn_call_driver.setEnabled(false);
+        btn_cancel.setEnabled(true);
+        tips_info.setText(getResources().getString(R.string.show_call_suc));
     }
 
     /**

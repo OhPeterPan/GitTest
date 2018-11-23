@@ -21,7 +21,8 @@ public class SharedPreferenceManager {
 
         if (sharedPreferences == null) {
             synchronized (SharedPreferenceManager.class) {
-                sharedPreferences = PreferenceManager.getDefaultSharedPreferences(TaxiApplication.getInstance().getApplicationContext());
+                if (sharedPreferences == null)
+                    sharedPreferences = PreferenceManager.getDefaultSharedPreferences(TaxiApplication.getInstance().getApplicationContext());
             }
         }
         return sharedPreferences;
